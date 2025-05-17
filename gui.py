@@ -36,6 +36,12 @@ class MarkItDownGUI:
             command=self.update_ui,
         ).grid(row=0, column=1, padx=10)
 
+        # EPUBのみ変換オプション
+        self.epub_only = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            self.mode_frame, text="EPUBファイルのみ変換", variable=self.epub_only
+        ).grid(row=0, column=2, padx=10)
+
         # 入力選択
         self.input_frame = ttk.LabelFrame(self.main_frame, text="入力", padding="5")
         self.input_frame.grid(
@@ -124,12 +130,18 @@ class MarkItDownGUI:
             self.select_input_folder()
 
     def select_input_file(self):
-        filetypes = [
-            ("サポートされているファイル", "*.epub;*.pdf"),
-            ("EPUBファイル", "*.epub"),
-            ("PDFファイル", "*.pdf"),
-            ("すべてのファイル", "*.*"),
-        ]
+        if self.epub_only.get():
+            filetypes = [
+                ("EPUBファイル", "*.epub"),
+                ("すべてのファイル", "*.*"),
+            ]
+        else:
+            filetypes = [
+                ("サポートされているファイル", "*.epub;*.pdf"),
+                ("EPUBファイル", "*.epub"),
+                ("PDFファイル", "*.pdf"),
+                ("すべてのファイル", "*.*"),
+            ]
         filename = filedialog.askopenfilename(title="変換するファイルを選択", filetypes=filetypes)
         if filename:
             self.input_path.set(filename)
@@ -152,26 +164,26 @@ class MarkItDownGUI:
 
     def find_convertible_files(self, folder: str) -> List[str]:
         """指定フォルダ内の変換可能なファイルを検索します"""
-        # PDFとEPUBファイルを別々に収集
         epub_files = {}  # ベースネーム: フルパス
         pdf_files = {}  # ベースネーム: フルパス
 
         for root, _, files in os.walk(folder):
             for file in files:
                 lower_file = file.lower()
-                if lower_file.endswith(".epub") or lower_file.endswith(".pdf"):
-                    base_name = os.path.splitext(file)[0]
-                    full_path = os.path.join(root, file)
+                base_name = os.path.splitext(file)[0]
+                full_path = os.path.join(root, file)
 
-                    if lower_file.endswith(".epub"):
-                        epub_files[base_name] = full_path
-                    else:  # .pdf
-                        # EPUBがまだない場合のみPDFを追加
-                        if base_name not in epub_files:
-                            pdf_files[base_name] = full_path
+                if lower_file.endswith(".epub"):
+                    epub_files[base_name] = full_path
+                elif not self.epub_only.get() and lower_file.endswith(".pdf"):
+                    # EPUBがまだない場合のみPDFを追加
+                    if base_name not in epub_files:
+                        pdf_files[base_name] = full_path
 
         # EPUBファイルを優先して結果をまとめる
-        convertible_files = list(epub_files.values()) + list(pdf_files.values())
+        convertible_files = list(epub_files.values())
+        if not self.epub_only.get():
+            convertible_files.extend(list(pdf_files.values()))
         return sorted(convertible_files)  # パスでソートして安定した順序を保証
 
     def convert_file(self, input_file: str, output_file: str) -> Tuple[bool, str]:
