@@ -125,14 +125,9 @@ class MarkItDownGUI:
 
     def select_input_file(self):
         filetypes = [
-            ("サポートされているファイル", "*.epub;*.pdf;*.docx;*.xlsx;*.html;*.txt;*.md"),
+            ("サポートされているファイル", "*.epub;*.pdf"),
             ("EPUBファイル", "*.epub"),
             ("PDFファイル", "*.pdf"),
-            ("Wordファイル", "*.docx"),
-            ("Excelファイル", "*.xlsx"),
-            ("HTMLファイル", "*.html"),
-            ("テキストファイル", "*.txt"),
-            ("Markdownファイル", "*.md"),
             ("すべてのファイル", "*.*"),
         ]
         filename = filedialog.askopenfilename(title="変換するファイルを選択", filetypes=filetypes)
@@ -157,14 +152,27 @@ class MarkItDownGUI:
 
     def find_convertible_files(self, folder: str) -> List[str]:
         """指定フォルダ内の変換可能なファイルを検索します"""
-        convertible_files = []
+        # PDFとEPUBファイルを別々に収集
+        epub_files = {}  # ベースネーム: フルパス
+        pdf_files = {}  # ベースネーム: フルパス
+
         for root, _, files in os.walk(folder):
             for file in files:
-                if file.lower().endswith(
-                    (".epub", ".pdf", ".docx", ".xlsx", ".html", ".txt")
-                ):
-                    convertible_files.append(os.path.join(root, file))
-        return convertible_files
+                lower_file = file.lower()
+                if lower_file.endswith(".epub") or lower_file.endswith(".pdf"):
+                    base_name = os.path.splitext(file)[0]
+                    full_path = os.path.join(root, file)
+
+                    if lower_file.endswith(".epub"):
+                        epub_files[base_name] = full_path
+                    else:  # .pdf
+                        # EPUBがまだない場合のみPDFを追加
+                        if base_name not in epub_files:
+                            pdf_files[base_name] = full_path
+
+        # EPUBファイルを優先して結果をまとめる
+        convertible_files = list(epub_files.values()) + list(pdf_files.values())
+        return sorted(convertible_files)  # パスでソートして安定した順序を保証
 
     def convert_file(self, input_file: str, output_file: str) -> Tuple[bool, str]:
         """ファイルを変換し、結果と詳細メッセージを返します"""
