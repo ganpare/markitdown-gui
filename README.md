@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MarkItDown
 
 [![PyPI](https://img.shields.io/pypi/v/markitdown.svg)](https://pypi.org/project/markitdown/)
@@ -221,3 +222,16 @@ trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
+=======
+# MarkItDown GUI
+
+GUI implementation for MarkItDown document converter.
+
+## Features
+
+- Single file conversion
+- Batch folder processing
+- Support for multiple file formats (EPUB, PDF, DOCX, etc.)
+- Progress tracking
+- Error handling
+>>>>>>> 30ba0173a201ffbb855a459b125eaf353eaf0dbb
